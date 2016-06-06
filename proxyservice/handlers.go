@@ -6,10 +6,13 @@ import (
 )
 
 type DockerHubWebhookHandler struct {
+	Jenkins *Jenkins
 }
 
-func NewDockerHubWebhookHandler() *DockerHubWebhookHandler {
-	return &DockerHubWebhookHandler{}
+func NewDockerHubWebhookHandler(jenkins *Jenkins) *DockerHubWebhookHandler {
+	return &DockerHubWebhookHandler{
+		Jenkins: jenkins,
+	}
 }
 
 func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -17,6 +20,8 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("Received dockerhub request from: %s", req.RemoteAddr)
 
 	hookData, err := NewDockerHubWebhookDataFromRequest(req)
 	if err != nil {
@@ -31,7 +36,13 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	if err := TriggerPipeline(hookData); err != nil {
-		log.Printf("Error triggering pipeline: %v", err)
+	log.Printf("Triggering Jenkins Job for: %s %s with tag: %s",
+		hookData.Repository.Namespace,
+		hookData.Repository.Name,
+		hookData.PushData.Tag,
+	)
+
+	if err := d.Jenkins.TriggerDockerhubJob(hookData); err != nil {
+		log.Printf("Error triggering jenkins: %v", err)
 	}
 }

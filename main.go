@@ -20,10 +20,35 @@ func main() {
 			Usage: "Listen address",
 			Value: "127.0.0.1:8000",
 		},
+		cli.StringFlag{
+			Name:   "jenkins-base-url",
+			Usage:  "For example: https://jenkins.example",
+			EnvVar: "JENKINS_BASE_URL",
+		},
+		cli.StringFlag{
+			Name:   "jenkins-user",
+			Usage:  "Username for authing against jenkins",
+			EnvVar: "JENKINS_USER",
+		},
+		cli.StringFlag{
+			Name:   "jenkins-password",
+			Usage:  "Password for authing against jenkins",
+			EnvVar: "JENKINS_PASSWORD",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
-		handler := proxyservice.NewDockerHubWebhookHandler()
+		if err := validateCliContext(c); err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
+
+		handler := proxyservice.NewDockerHubWebhookHandler(
+			proxyservice.NewJenkins(
+				c.String("jenkins-base-url"),
+				c.String("jenkins-user"),
+				c.String("jenkins-password"),
+			),
+		)
 
 		mux := http.NewServeMux()
 		mux.Handle("/dockerhub", handler)
@@ -38,4 +63,18 @@ func main() {
 		return nil
 	}
 	app.Run(os.Args)
+}
+func validateCliContext(c *cli.Context) error {
+	cErrors := make([]error, 0)
+	mustBeSet := []string{"jenkins-base-url", "jenkins-user", "jenkins-password"}
+	for _, s := range mustBeSet {
+		if c.String(s) == "" {
+			cErrors = append(cErrors, fmt.Errorf("%s must be set", s))
+		}
+	}
+
+	if len(cErrors) > 0 {
+		return cli.NewMultiError(cErrors...)
+	}
+	return nil
 }
