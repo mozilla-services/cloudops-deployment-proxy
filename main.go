@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/mozilla-services/cloudops-deployment-dockerhub-proxy/proxyservice"
+	"go.mozilla.org/cloudops-deployment-dockerhub-proxy/proxyservice"
+
 	"github.com/urfave/cli"
 )
 
