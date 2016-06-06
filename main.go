@@ -24,9 +24,13 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		handler := proxyservice.NewDockerHubWebhookHandler()
+
+		mux := http.NewServeMux()
+		mux.Handle("/dockerhub", handler)
+
 		server := &http.Server{
 			Addr:    c.String("addr"),
-			Handler: handler,
+			Handler: mux,
 		}
 		if err := server.ListenAndServe(); err != nil {
 			return cli.NewExitError(fmt.Sprintf("Server crashed: %v", err), 1)
