@@ -1,0 +1,24 @@
+{
+  "callback_url": "https://registry.hub.docker.com/u/mozilla/testrepo/hook/2141b5bi5i5b02bec211i4eeih0242eg11000a/",
+  "push_data": {
+	"tag": "v1.1.1",
+    "images": [],
+    "pushed_at": 129292929,
+    "pusher": "trustedbuilder"
+  },
+  "repository": {
+    "comment_count": 0,
+    "date_created": 1919191919,
+    "description": "",
+    "is_official": false,
+    "is_private": true,
+    "is_trusted": true,
+    "name": "testrepo",
+    "namespace": "mozilla",
+    "owner": "mozilla",
+    "repo_name": "mozilla/testrepo",
+    "repo_url": "https://registry.hub.docker.com/u/mozilla/testrepo/",
+    "star_count": 0,
+    "status": "Active"
+  }
+}

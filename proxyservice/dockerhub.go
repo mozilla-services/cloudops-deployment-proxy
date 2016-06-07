@@ -30,10 +30,10 @@ func NewSuccessCallbackData() *CallBackData {
 // DockerHubWebhookData represents the dockerhub webhook format
 type DockerHubWebhookData struct {
 	PushData struct {
-		PushedAt int           `json:"pushed_at"`
-		Images   []interface{} `json:"images"`
-		Tag      string        `json:"tag"`
-		Pusher   string        `json:"pusher"`
+		PushedAt int      `json:"pushed_at"`
+		Images   []string `json:"images"`
+		Tag      string   `json:"tag"`
+		Pusher   string   `json:"pusher"`
 	} `json:"push_data"`
 	CallbackURL string `json:"callback_url"`
 	Repository  struct {
