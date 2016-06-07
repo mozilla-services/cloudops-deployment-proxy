@@ -10,6 +10,11 @@
 			"ImportPath": "github.com/urfave/cli",
 			"Comment": "v1.17.0-57-gedb24d0",
 			"Rev": "edb24d02aa3cea2319c33f2836d4a5133907fe4c"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify",
+			"Comment": "8d64eb7173c7753d6419fd4a9caf057398611364",
+			"Rev": "8d64eb7173c7753d6419fd4a9caf057398611364"
 		}
 	]
 }
