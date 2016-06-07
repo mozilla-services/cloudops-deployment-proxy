@@ -19,7 +19,7 @@ var fakeJenkins = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter
 		w.Write([]byte(`{"crumb": "crmb", "crumbRequestField": "Jenkins-Crumb"}`))
 		return
 	}
-	w.WriteHeader(200)
+	w.WriteHeader(201)
 }))
 
 var fakeDockerHub = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

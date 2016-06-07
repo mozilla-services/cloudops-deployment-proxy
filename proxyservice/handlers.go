@@ -60,5 +60,8 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 
 	if err := d.Jenkins.TriggerDockerhubJob(hookData); err != nil {
 		log.Printf("Error triggering jenkins: %v", err)
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
 	}
+	w.Write([]byte("OK"))
 }
