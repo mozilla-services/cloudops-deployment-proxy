@@ -95,13 +95,13 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 // TriggerDockerhubJob triggers a jenkins job
 // given DockerHubWebhookData
 func (j *Jenkins) TriggerDockerhubJob(data *DockerHubWebhookData) error {
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`).MatchString(data.Repository.Name) {
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Repository.Name) {
 		return fmt.Errorf("Invalid data.Repository.Name: %s", data.Repository.Name)
 	}
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`).MatchString(data.Repository.Namespace) {
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Repository.Namespace) {
 		return fmt.Errorf("Invalid data.Repository.Namespace: %s", data.Repository.Namespace)
 	}
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.]+$`).MatchString(data.PushData.Tag) {
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.]{1,100}$`).MatchString(data.PushData.Tag) {
 		return fmt.Errorf("Invalid data.PushData.Tag: %s", data.PushData.Tag)
 	}
 
