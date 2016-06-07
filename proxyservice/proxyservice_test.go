@@ -23,6 +23,10 @@ var fakeJenkins = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter
 }))
 
 var fakeDockerHub = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	if strings.HasSuffix(req.URL.Path, "fail") {
+		w.WriteHeader(403)
+		return
+	}
 	w.WriteHeader(200)
 }))
 
@@ -41,6 +45,7 @@ func sendRequest(method, url string, body io.Reader, h http.Handler) *httptest.R
 }
 
 type DockerhubFixtureTest struct {
+	TestName   string
 	StatusCode int
 	ModFunc    func(*DockerHubWebhookData) *DockerHubWebhookData
 }
@@ -65,15 +70,59 @@ func TestHandler(t *testing.T) {
 
 	// Fixture Tests
 	fixtures := []DockerhubFixtureTest{
+		// Input Validation
+		// Invalid Callback URL
+		{
+			TestName:   "Faked Callback",
+			StatusCode: http.StatusUnauthorized,
+			ModFunc: func(data *DockerHubWebhookData) *DockerHubWebhookData {
+				data.CallbackURL = fmt.Sprintf("%s/u/maliciousowner/testrepo/hook/2020202020/", fakeDockerHub.URL)
+				return data
+			},
+		},
 		// Invalid Namespace
 		{
+			TestName:   "Invalid Namespace",
 			StatusCode: http.StatusUnauthorized,
 			ModFunc: func(data *DockerHubWebhookData) *DockerHubWebhookData {
 				data.Repository.Namespace = "invalidddd"
 				return data
 			},
 		},
+		// Invalid Name
 		{
+			TestName:   "Invalid Name",
+			StatusCode: http.StatusInternalServerError,
+			ModFunc: func(data *DockerHubWebhookData) *DockerHubWebhookData {
+				data.CallbackURL = fmt.Sprintf("%s/u/mozilla/abkljaiojewiojf[[[[[[{{}}{}{}/hook/2020202020/", fakeDockerHub.URL)
+				data.Repository.Name = "abkljaiojewiojf[[[[[[{{}}{}{}"
+				return data
+			},
+		},
+		// Invalid Tag
+		{
+			TestName:   "Invalid Tag",
+			StatusCode: http.StatusInternalServerError,
+			ModFunc: func(data *DockerHubWebhookData) *DockerHubWebhookData {
+				data.CallbackURL = fmt.Sprintf("%s/u/mozilla/testrepo/hook/2020202020/", fakeDockerHub.URL)
+				data.PushData.Tag = "v1.1.1[bad]"
+				return data
+			},
+		},
+
+		// Callback Fails
+		{
+			TestName:   "Failing Callback",
+			StatusCode: http.StatusUnauthorized,
+			ModFunc: func(data *DockerHubWebhookData) *DockerHubWebhookData {
+				data.CallbackURL = fmt.Sprintf("%s/u/mozilla/testrepo/hook/2020202020/fail", fakeDockerHub.URL)
+				return data
+			},
+		},
+
+		// Valid Request
+		{
+			TestName:   "Valid Request",
 			StatusCode: http.StatusOK,
 			ModFunc: func(data *DockerHubWebhookData) *DockerHubWebhookData {
 				data.CallbackURL = fmt.Sprintf("%s/u/mozilla/testrepo/hook/2020202020/", fakeDockerHub.URL)
@@ -88,7 +137,7 @@ func TestHandler(t *testing.T) {
 			t.Fatal(err)
 		}
 		resp = sendRequest("POST", "http://test/dockerhub", bytes.NewReader(dataBytes), handler)
-		assert.Equal(t, fixture.StatusCode, resp.Code)
+		assert.Equal(t, fixture.StatusCode, resp.Code, fixture.TestName)
 	}
 }
 
