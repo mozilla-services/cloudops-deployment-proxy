@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var DockerhubRegistry = "https://registry.hub.docker.com"
+
 // CallBackData is the data format described at https://docs.docker.com/docker-hub/webhooks/#callback-json-data
 type CallBackData struct {
 	State       string `json:"state,omitempty"`
@@ -28,10 +30,10 @@ func NewSuccessCallbackData() *CallBackData {
 // DockerHubWebhookData represents the dockerhub webhook format
 type DockerHubWebhookData struct {
 	PushData struct {
-		PushedAt int           `json:"pushed_at"`
-		Images   []interface{} `json:"images"`
-		Tag      string        `json:"tag"`
-		Pusher   string        `json:"pusher"`
+		PushedAt int      `json:"pushed_at"`
+		Images   []string `json:"images"`
+		Tag      string   `json:"tag"`
+		Pusher   string   `json:"pusher"`
 	} `json:"push_data"`
 	CallbackURL string `json:"callback_url"`
 	Repository  struct {
@@ -54,8 +56,10 @@ type DockerHubWebhookData struct {
 
 // Callback calls data's callback_url
 func (d *DockerHubWebhookData) Callback(cb *CallBackData) error {
-	if !strings.HasPrefix(d.CallbackURL, "https://registry.hub.docker.com/") {
-		return errors.New("d.CallBackURL does not start with https://registry.hub.docker.com/")
+	callbackPrefix := fmt.Sprintf("%s/u/%s/%s/hook/",
+		DockerhubRegistry, d.Repository.Namespace, d.Repository.Name)
+	if !strings.HasPrefix(d.CallbackURL, callbackPrefix) {
+		return fmt.Errorf("d.CallBackURL does not start with %s", callbackPrefix)
 	}
 	data, err := json.Marshal(cb)
 	if err != nil {

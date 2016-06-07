@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 	"strings"
 )
 
@@ -86,7 +87,7 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 201 {
-		return fmt.Errorf("Jenkins did not returned %d, expected 201", resp.StatusCode)
+		return fmt.Errorf("Jenkins returned %d, expected 201", resp.StatusCode)
 	}
 	return nil
 }
@@ -94,6 +95,16 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 // TriggerDockerhubJob triggers a jenkins job
 // given DockerHubWebhookData
 func (j *Jenkins) TriggerDockerhubJob(data *DockerHubWebhookData) error {
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Repository.Name) {
+		return fmt.Errorf("Invalid data.Repository.Name: %s", data.Repository.Name)
+	}
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Repository.Namespace) {
+		return fmt.Errorf("Invalid data.Repository.Namespace: %s", data.Repository.Namespace)
+	}
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.]{1,100}$`).MatchString(data.PushData.Tag) {
+		return fmt.Errorf("Invalid data.PushData.Tag: %s", data.PushData.Tag)
+	}
+
 	rawJSON, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("Error marshaling data: %v", err)

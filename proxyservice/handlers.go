@@ -6,13 +6,23 @@ import (
 )
 
 type DockerHubWebhookHandler struct {
-	Jenkins *Jenkins
+	Jenkins         *Jenkins
+	ValidNameSpaces map[string]bool
 }
 
-func NewDockerHubWebhookHandler(jenkins *Jenkins) *DockerHubWebhookHandler {
-	return &DockerHubWebhookHandler{
-		Jenkins: jenkins,
+func NewDockerHubWebhookHandler(jenkins *Jenkins, nameSpaces ...string) *DockerHubWebhookHandler {
+	validNameSpaces := make(map[string]bool)
+	for _, nameSpace := range nameSpaces {
+		validNameSpaces[nameSpace] = true
 	}
+	return &DockerHubWebhookHandler{
+		Jenkins:         jenkins,
+		ValidNameSpaces: validNameSpaces,
+	}
+}
+
+func (d *DockerHubWebhookHandler) isValidNamespace(nameSpace string) bool {
+	return d.ValidNameSpaces[nameSpace]
 }
 
 func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -30,6 +40,12 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		return
 	}
 
+	if !d.isValidNamespace(hookData.Repository.Namespace) {
+		log.Printf("Invalid Namespace: %s", hookData.Repository.Namespace)
+		http.Error(w, "Invalid Namespace", http.StatusUnauthorized)
+		return
+	}
+
 	if err := hookData.Callback(NewSuccessCallbackData()); err != nil {
 		log.Printf("Callback error: %v", err)
 		http.Error(w, "Request could not be validated", http.StatusUnauthorized)
@@ -44,5 +60,8 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 
 	if err := d.Jenkins.TriggerDockerhubJob(hookData); err != nil {
 		log.Printf("Error triggering jenkins: %v", err)
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
 	}
+	w.Write([]byte("OK"))
 }
