@@ -19,6 +19,7 @@ func main() {
 			Name:  "addr, a",
 			Usage: "Listen address",
 			Value: "127.0.0.1:8000",
+			EnvVar: "ADDR",
 		},
 		cli.StringFlag{
 			Name:   "jenkins-base-url",
