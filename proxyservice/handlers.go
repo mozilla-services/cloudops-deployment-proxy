@@ -6,13 +6,23 @@ import (
 )
 
 type DockerHubWebhookHandler struct {
-	Jenkins *Jenkins
+	Jenkins         *Jenkins
+	ValidNameSpaces map[string]bool
 }
 
-func NewDockerHubWebhookHandler(jenkins *Jenkins) *DockerHubWebhookHandler {
-	return &DockerHubWebhookHandler{
-		Jenkins: jenkins,
+func NewDockerHubWebhookHandler(jenkins *Jenkins, nameSpaces ...string) *DockerHubWebhookHandler {
+	validNameSpaces := make(map[string]bool)
+	for _, nameSpace := range nameSpaces {
+		validNameSpaces[nameSpace] = true
 	}
+	return &DockerHubWebhookHandler{
+		Jenkins:         jenkins,
+		ValidNameSpaces: validNameSpaces,
+	}
+}
+
+func (d *DockerHubWebhookHandler) isValidNamespace(nameSpace string) bool {
+	return d.ValidNameSpaces[nameSpace]
 }
 
 func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -27,6 +37,12 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 	if err != nil {
 		log.Printf("Error parsing request: %v", err)
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
+
+	if !d.isValidNamespace(hookData.Repository.Namespace) {
+		log.Printf("Invalid Namespace: %s", hookData.Repository.Namespace)
+		http.Error(w, "Invalid Namespace", http.StatusUnauthorized)
 		return
 	}
 

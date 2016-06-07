@@ -16,10 +16,16 @@ func main() {
 	app.Usage = "Listens for requests from dockerhub webhooks and triggers Jenkins pipelines."
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "addr, a",
-			Usage: "Listen address",
-			Value: "127.0.0.1:8000",
+			Name:   "addr, a",
+			Usage:  "Listen address",
+			Value:  "127.0.0.1:8000",
 			EnvVar: "ADDR",
+		},
+		cli.StringSliceFlag{
+			Name:   "valid-namespace, n",
+			Usage:  "Valid Namespace (can be used multiple times)",
+			Value:  &cli.StringSlice{"mozilla"},
+			EnvVar: "NAMESPACE",
 		},
 		cli.StringFlag{
 			Name:   "jenkins-base-url",
@@ -49,6 +55,7 @@ func main() {
 				c.String("jenkins-user"),
 				c.String("jenkins-password"),
 			),
+			c.StringSlice("valid-namespace")...,
 		)
 
 		mux := http.NewServeMux()
