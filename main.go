@@ -60,6 +60,12 @@ func main() {
 
 		mux := http.NewServeMux()
 		mux.Handle("/dockerhub", handler)
+		mux.HandleFunc("/__heartbeat__", func(w http.ResponseWriter, req *http.Request) {
+			w.Write([]byte("OK"))
+		})
+		mux.HandleFunc("/__lbheartbeat__", func(w http.ResponseWriter, req *http.Request) {
+			w.Write([]byte("OK"))
+		})
 
 		server := &http.Server{
 			Addr:    c.String("addr"),
