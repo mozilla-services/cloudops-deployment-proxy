@@ -6,9 +6,14 @@ import (
 	"os"
 
 	"go.mozilla.org/cloudops-deployment-proxy/proxyservice"
+	"go.mozilla.org/mozlog"
 
 	"github.com/urfave/cli"
 )
+
+func init() {
+	mozlog.Logger.LoggerName = "CloudopsDeploymentProxy"
+}
 
 func main() {
 	app := cli.NewApp()
