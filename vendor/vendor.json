@@ -1,0 +1,39 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "5rPfda8jFccr3A6heL+JAmi9K9g=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "8d64eb7173c7753d6419fd4a9caf057398611364",
+			"revisionTime": "2016-05-24T23:42:29Z"
+		},
+		{
+			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "8d64eb7173c7753d6419fd4a9caf057398611364",
+			"revisionTime": "2016-05-24T23:42:29Z"
+		},
+		{
+			"checksumSHA1": "Bn333k9lTndxU3D6n/G5c+GMcYY=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "8d64eb7173c7753d6419fd4a9caf057398611364",
+			"revisionTime": "2016-05-24T23:42:29Z"
+		},
+		{
+			"checksumSHA1": "CAFo3C9XTnrA5IRK1/fQsuB2wNE=",
+			"path": "github.com/urfave/cli",
+			"revision": "fa949b48f384d8916e1ca94880d665deaa1105c2",
+			"revisionTime": "2016-06-08T15:15:11Z"
+		},
+		{
+			"checksumSHA1": "9uyyX8j/FrpGQmma7IEyG1yNsNw=",
+			"path": "go.mozilla.org/mozlog",
+			"revision": "cd74695caf44b948634a9dd4b799a46c8690fe68",
+			"revisionTime": "2016-06-10T16:29:30Z"
+		}
+	],
+	"rootPath": "go.mozilla.org/cloudops-deployment-proxy"
+}
