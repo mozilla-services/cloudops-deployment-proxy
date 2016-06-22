@@ -87,7 +87,7 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 201 {
-		return fmt.Errorf("Jenkins returned %d, expected 201", resp.StatusCode)
+		return fmt.Errorf("Jenkins returned %d for %s, expected 201", resp.StatusCode, resp.Request.URL)
 	}
 	return nil
 }
