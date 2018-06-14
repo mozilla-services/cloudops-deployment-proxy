@@ -1,6 +1,7 @@
 package proxyservice
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -63,5 +64,28 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return
 	}
+	w.Write([]byte("OK"))
+}
+
+type GcrWebhookHandler struct {
+	Jenkins         *Jenkins
+	ValidNameSpaces map[string]bool
+}
+
+func (d *GcrWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	hookData, err := NewGcrWebhookDataFromRequest(req)
+	if err != nil {
+		log.Printf("Error parsing request: %v", err)
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Printf("%#v\n", hookData)
+
 	w.Write([]byte("OK"))
 }

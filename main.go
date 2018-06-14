@@ -65,6 +65,7 @@ func main() {
 
 		mux := http.NewServeMux()
 		mux.Handle("/dockerhub", handler)
+		mux.Handle("/gcr", &proxyservice.GcrWebhookHandler{})
 		mux.HandleFunc("/__heartbeat__", func(w http.ResponseWriter, req *http.Request) {
 			w.Write([]byte("OK"))
 		})
