@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+  "log"
 	"net/http"
 	"net/url"
 	"path"
@@ -92,27 +93,25 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 	return nil
 }
 
-// TriggerDockerhubJob triggers a jenkins job
-// given DockerHubWebhookData
-func (j *Jenkins) TriggerDockerhubJob(data *DockerHubWebhookData) error {
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Repository.Name) {
-		return fmt.Errorf("Invalid data.Repository.Name: %s", data.Repository.Name)
+// TriggerJenkinsJob triggers a jenkins job
+// given docker repo name, docker repo namespace, and image tag
+func (j *Jenkins) TriggerJenkinsJob(repoName, namespace, tag, rawJSON string) error {
+  log.Printf("Triggering Jenkins Job for: %s %s with tag: %s", repoName, namespace, tag)
+
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(repoName) {
+		return fmt.Errorf("Invalid repoName: %s", repoName)
 	}
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Repository.Namespace) {
-		return fmt.Errorf("Invalid data.Repository.Namespace: %s", data.Repository.Namespace)
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(namespace) {
+		return fmt.Errorf("Invalid namespace: %s", namespace)
 	}
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.]{1,100}$`).MatchString(data.PushData.Tag) {
-		return fmt.Errorf("Invalid data.PushData.Tag: %s", data.PushData.Tag)
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.]{1,100}$`).MatchString(tag) {
+		return fmt.Errorf("Invalid tag: %s", tag)
 	}
 
-	rawJSON, err := json.Marshal(data)
-	if err != nil {
-		return fmt.Errorf("Error marshaling data: %v", err)
-	}
 	path := path.Join("/job/dockerhub/job",
-		data.Repository.Namespace, "job", data.Repository.Name)
+		namespace, "job", repoName)
 	params := url.Values{}
-	params.Set("Tag", data.PushData.Tag)
-	params.Set("RawJSON", string(rawJSON))
+	params.Set("Tag", tag)
+	params.Set("RawJSON", rawJSON)
 	return j.TriggerJob(path, params)
 }

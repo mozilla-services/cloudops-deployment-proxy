@@ -1,0 +1,11 @@
+{
+  "message": {
+    "attributes": {
+      "buildId": "abcd-efgh",
+      "status": "SUCCESS"
+    },
+    "data": "ewogICJhY3Rpb24iOiJJTlNFUlQiLAogICJkaWdlc3QiOiJnY3IuaW8vbXktcHJvamVjdC9oZWxsby13b3JsZEBzaGEyNTY6NmVjMTI4ZTI2Y2Q1Igp9Cg",
+    "message_id": "136969346945"
+  },
+  "subscription": "projects/myproject/subscriptions/mysubscription"
+}

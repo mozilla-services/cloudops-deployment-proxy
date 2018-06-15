@@ -50,7 +50,7 @@ type DockerhubFixtureTest struct {
 	ModFunc    func(*DockerHubWebhookData) *DockerHubWebhookData
 }
 
-func TestHandler(t *testing.T) {
+func TestDockerHubHandler(t *testing.T) {
 	handler := NewDockerHubWebhookHandler(
 		NewJenkins(
 			fakeJenkins.URL,
@@ -131,7 +131,7 @@ func TestHandler(t *testing.T) {
 		},
 	}
 	for _, fixture := range fixtures {
-		data := fixture.ModFunc(baseWebhookData())
+		data := fixture.ModFunc(dockerhubWebhookData())
 		dataBytes, err := json.Marshal(data)
 		if err != nil {
 			t.Fatal(err)
@@ -141,7 +141,7 @@ func TestHandler(t *testing.T) {
 	}
 }
 
-func baseWebhookData() *DockerHubWebhookData {
+func dockerhubWebhookData() *DockerHubWebhookData {
 	f, err := os.Open("fixtures/dockerhub_base.json")
 	if err != nil {
 		panic(err)

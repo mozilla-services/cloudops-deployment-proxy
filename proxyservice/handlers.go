@@ -53,23 +53,42 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	log.Printf("Triggering Jenkins Job for: %s %s with tag: %s",
-		hookData.Repository.Namespace,
-		hookData.Repository.Name,
-		hookData.PushData.Tag,
-	)
+  rawJSON, err := hookData.rawJSON()
+  if err != nil {
+    log.Printf(err.Error())
+    http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+    return
+  }
 
-	if err := d.Jenkins.TriggerDockerhubJob(hookData); err != nil {
+	err = d.Jenkins.TriggerJenkinsJob(
+    hookData.Repository.Name,
+    hookData.Repository.Namespace,
+    hookData.PushData.Tag,
+    rawJSON,
+  )
+  if err != nil {
 		log.Printf("Error triggering jenkins: %v", err)
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return
 	}
+
 	w.Write([]byte("OK"))
 }
 
 type GcrWebhookHandler struct {
 	Jenkins         *Jenkins
 	ValidNameSpaces map[string]bool
+}
+
+func NewGcrWebhookHandler(jenkins *Jenkins, nameSpaces ...string) *GcrWebhookHandler {
+	validNameSpaces := make(map[string]bool)
+	for _, nameSpace := range nameSpaces {
+		validNameSpaces[nameSpace] = true
+	}
+	return &GcrWebhookHandler{
+		Jenkins:         jenkins,
+		ValidNameSpaces: validNameSpaces,
+	}
 }
 
 func (d *GcrWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -81,6 +100,32 @@ func (d *GcrWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 	hookData, err := NewGcrWebhookDataFromRequest(req)
 	if err != nil {
 		log.Printf("Error parsing request: %v", err)
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
+
+	if !hookData.isValid() {
+		log.Printf("Received invalid request: %v", err)
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
+
+  rawJSON, err := hookData.rawJSON()
+  if err != nil {
+    log.Printf(err.Error())
+    http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+    return
+  }
+
+  err = d.Jenkins.TriggerJenkinsJob(
+    hookData.getRepositoryName(),
+    hookData.getRepositoryDomain(),
+    hookData.getImageTagOrDigest(),
+    rawJSON,
+  )
+
+  if err != nil {
+		log.Printf("Error triggering jenkins: %v", err)
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return
 	}

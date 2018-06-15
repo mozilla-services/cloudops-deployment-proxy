@@ -54,6 +54,14 @@ type DockerHubWebhookData struct {
 	} `json:"repository"`
 }
 
+func (d *DockerHubWebhookData) rawJSON() (string, error) {
+  rawJSON, err := json.Marshal(d)
+  if err != nil {
+    return "", fmt.Errorf("Error marshaling data: %v", err)
+  }
+  return string(rawJSON), nil
+}
+
 // Callback calls data's callback_url
 func (d *DockerHubWebhookData) Callback(cb *CallBackData) error {
 	callbackPrefix := fmt.Sprintf("%s/u/%s/%s/hook/",
