@@ -54,18 +54,22 @@ func main() {
 			return cli.NewExitError(err.Error(), 1)
 		}
 
+		jenkins := proxyservice.NewJenkins(
+			c.String("jenkins-base-url"),
+			c.String("jenkins-user"),
+			c.String("jenkins-password"),
+		)
+
 		handler := proxyservice.NewDockerHubWebhookHandler(
-			proxyservice.NewJenkins(
-				c.String("jenkins-base-url"),
-				c.String("jenkins-user"),
-				c.String("jenkins-password"),
-			),
+			jenkins,
 			c.StringSlice("valid-namespace")...,
 		)
 
 		mux := http.NewServeMux()
 		mux.Handle("/dockerhub", handler)
-		mux.Handle("/gcr", &proxyservice.GcrWebhookHandler{})
+		mux.Handle("/gcr", &proxyservice.GcrWebhookHandler{
+			Jenkins: jenkins,
+		})
 		mux.HandleFunc("/__heartbeat__", func(w http.ResponseWriter, req *http.Request) {
 			w.Write([]byte("OK"))
 		})
