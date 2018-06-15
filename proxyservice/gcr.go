@@ -12,6 +12,8 @@ import (
 	"github.com/docker/distribution/reference"
 )
 
+// pubSubNotification is the JSON message Google PubSub sends to our HTTP
+// endpoint
 type pubSubNotification struct {
 	Message      pubSubMessage
 	Subscription string
@@ -19,10 +21,12 @@ type pubSubNotification struct {
 
 type pubSubMessage struct {
 	Attributes map[string]string
-	Data       string
-	MessageId  string
+	// Base64-ed JSON GcrWebhookData object
+	Data      string
+	MessageId string
 }
 
+// GcrWebhookData is the GCR-related data
 type GcrWebhookData struct {
 	Action string `json:"action"`
 	Digest string `json:"digest,omitempty"`
