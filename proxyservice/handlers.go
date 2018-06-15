@@ -52,16 +52,81 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	log.Printf("Triggering Jenkins Job for: %s %s with tag: %s",
-		hookData.Repository.Namespace,
-		hookData.Repository.Name,
-		hookData.PushData.Tag,
-	)
+	rawJSON, err := hookData.rawJSON()
+	if err != nil {
+		log.Printf(err.Error())
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
 
-	if err := d.Jenkins.TriggerDockerhubJob(hookData); err != nil {
+	err = d.Jenkins.TriggerJenkinsJob(
+		"dockerhub",
+		hookData.Repository.Name,
+		hookData.Repository.Namespace,
+		hookData.PushData.Tag,
+		rawJSON,
+	)
+	if err != nil {
 		log.Printf("Error triggering jenkins: %v", err)
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return
 	}
+
+	w.Write([]byte("OK"))
+}
+
+type GcrWebhookHandler struct {
+	Jenkins      *Jenkins
+	PubSubSecret string
+}
+
+func (d *GcrWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	queryParams := req.URL.Query()
+
+	if queryParams.Get("secret") != d.PubSubSecret {
+		log.Printf("Received request with invalid secret")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	hookData, err := NewGcrWebhookDataFromRequest(req)
+	if err != nil {
+		log.Printf("Error parsing request: %v", err)
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
+
+	if !hookData.isValid() {
+		log.Printf("Received invalid request: %v", err)
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
+
+	rawJSON, err := hookData.rawJSON()
+	if err != nil {
+		log.Printf(err.Error())
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
+
+	err = d.Jenkins.TriggerJenkinsJob(
+		"gcr",
+		hookData.getRepositoryName(),
+		hookData.getRepositoryDomain(),
+		hookData.getImageTagOrDigest(),
+		rawJSON,
+	)
+
+	if err != nil {
+		log.Printf("Error triggering jenkins: %v", err)
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
+
 	w.Write([]byte("OK"))
 }
