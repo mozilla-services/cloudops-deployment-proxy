@@ -29,14 +29,22 @@ type GcrWebhookData struct {
 	Tag    string `json:"tag,omitempty"`
 }
 
-func (d *GcrWebhookData) isValid() bool {
-	// check for valid actions
+func (d *GcrWebhookData) hasValidAction() bool {
 	validActions := map[string]bool{"INSERT": true}
 	return validActions[d.Action]
+}
 
-	// check for image reference regexp match
+func (d *GcrWebhookData) hasValidImageReference() bool {
 	return reference.ReferenceRegexp.MatchString(d.getImageReference())
+}
 
+func (d *GcrWebhookData) isValid() bool {
+	if !d.hasValidAction() {
+		return false
+	}
+	if !d.hasValidImageReference() {
+		return false
+	}
 	return true
 }
 
