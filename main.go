@@ -47,6 +47,11 @@ func main() {
 			Usage:  "Password for authing against jenkins",
 			EnvVar: "JENKINS_PASSWORD",
 		},
+		cli.StringFlag{
+			Name:   "pubsub-secret",
+			Usage:  "Secret to authenticate PubSub requests",
+			EnvVar: "PUBSUB_SECRET",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -68,7 +73,8 @@ func main() {
 		mux := http.NewServeMux()
 		mux.Handle("/dockerhub", handler)
 		mux.Handle("/gcr", &proxyservice.GcrWebhookHandler{
-			Jenkins: jenkins,
+			Jenkins:      jenkins,
+			PubSubSecret: c.String("pubsub-secret"),
 		})
 		mux.HandleFunc("/__heartbeat__", func(w http.ResponseWriter, req *http.Request) {
 			w.Write([]byte("OK"))

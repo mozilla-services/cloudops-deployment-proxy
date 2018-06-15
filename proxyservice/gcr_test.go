@@ -85,14 +85,13 @@ func TestGcrWebhookData(t *testing.T) {
 }
 
 func TestGcrHandler(t *testing.T) {
-	handler := NewGcrWebhookHandler(
-		NewJenkins(
+	handler := &GcrWebhookHandler{
+		Jenkins: NewJenkins(
 			fakeJenkins.URL,
 			"fakeuser",
 			"fakepass",
 		),
-		"mozilla",
-	)
+	}
 
 	// Invalid JSON
 	resp := sendRequest("POST", "http://test/dockerhub", strings.NewReader(`{"invalid"`), handler)

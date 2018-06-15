@@ -75,24 +75,21 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 }
 
 type GcrWebhookHandler struct {
-	Jenkins         *Jenkins
-	ValidNameSpaces map[string]bool
-}
-
-func NewGcrWebhookHandler(jenkins *Jenkins, nameSpaces ...string) *GcrWebhookHandler {
-	validNameSpaces := make(map[string]bool)
-	for _, nameSpace := range nameSpaces {
-		validNameSpaces[nameSpace] = true
-	}
-	return &GcrWebhookHandler{
-		Jenkins:         jenkins,
-		ValidNameSpaces: validNameSpaces,
-	}
+	Jenkins      *Jenkins
+	PubSubSecret string
 }
 
 func (d *GcrWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+
+	queryParams := req.URL.Query()
+
+	if queryParams.Get("secret") != d.PubSubSecret {
+		log.Printf("Received request with invalid secret")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
