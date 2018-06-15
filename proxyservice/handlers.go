@@ -1,7 +1,6 @@
 package proxyservice
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 )
@@ -129,8 +128,6 @@ func (d *GcrWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Printf("%#v\n", hookData)
 
 	w.Write([]byte("OK"))
 }
