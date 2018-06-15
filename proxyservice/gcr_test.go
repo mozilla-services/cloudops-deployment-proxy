@@ -124,6 +124,35 @@ func TestGcrHandler(t *testing.T) {
 	}
 }
 
+func TestGcrHandlerAuthentication(t *testing.T) {
+	secret := "foo"
+	handler := &GcrWebhookHandler{
+		Jenkins: NewJenkins(
+			fakeJenkins.URL,
+			"fakeuser",
+			"fakepass",
+		),
+		PubSubSecret: secret,
+	}
+
+	t.Run("No secret parameter", func(t *testing.T) {
+		resp := sendRequest("POST", "http://test/gcr", strings.NewReader(`{"invalid"}`), handler)
+		assert.Equal(t, http.StatusUnauthorized, resp.Code)
+	})
+
+	t.Run("Invalid secret parameter", func(t *testing.T) {
+		resp := sendRequest("POST", "http://test/gcr?secret=bar", strings.NewReader(`{"invalid"}`), handler)
+		assert.Equal(t, http.StatusUnauthorized, resp.Code)
+	})
+
+	t.Run("Valid secret parameter", func(t *testing.T) {
+		dataBytes, err := json.Marshal(gcrWebhookData())
+		assert.Nil(t, err)
+		resp := sendRequest("POST", "http://test/gcr?secret="+secret, bytes.NewReader(dataBytes), handler)
+		assert.Equal(t, http.StatusOK, resp.Code)
+	})
+}
+
 func gcrWebhookData() *pubSubNotification {
 	f, err := os.Open("fixtures/gcr_base.json")
 	if err != nil {

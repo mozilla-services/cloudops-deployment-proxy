@@ -104,7 +104,7 @@ func (j *Jenkins) TriggerJenkinsJob(jobName, repoName, namespace, tag, rawJSON s
 	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(namespace) {
 		return fmt.Errorf("Invalid namespace: %s", namespace)
 	}
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.]{1,100}$`).MatchString(tag) {
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.:]{1,200}$`).MatchString(tag) {
 		return fmt.Errorf("Invalid tag: %s", tag)
 	}
 
