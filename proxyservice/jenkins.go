@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-  "log"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -96,7 +96,7 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 // TriggerJenkinsJob triggers a jenkins job
 // given docker repo name, docker repo namespace, and image tag
 func (j *Jenkins) TriggerJenkinsJob(repoName, namespace, tag, rawJSON string) error {
-  log.Printf("Triggering Jenkins Job for: %s %s with tag: %s", repoName, namespace, tag)
+	log.Printf("Triggering Jenkins Job for: %s %s with tag: %s", repoName, namespace, tag)
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(repoName) {
 		return fmt.Errorf("Invalid repoName: %s", repoName)

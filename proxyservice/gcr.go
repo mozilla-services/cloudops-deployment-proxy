@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-  "fmt"
+	"fmt"
 	"io/ioutil"
-  "net/http"
-  "strings"
+	"net/http"
+	"strings"
 
-  "github.com/docker/distribution/reference"
+	"github.com/docker/distribution/reference"
 )
 
 type pubSubNotification struct {
@@ -34,44 +34,44 @@ func (d *GcrWebhookData) isValid() bool {
 	validActions := map[string]bool{"INSERT": true}
 	return validActions[d.Action]
 
-  // check for image reference regexp match
-  return reference.ReferenceRegexp.MatchString(d.getImageReference())
+	// check for image reference regexp match
+	return reference.ReferenceRegexp.MatchString(d.getImageReference())
 
 	return true
 }
 
 func (d *GcrWebhookData) getImageReference() string {
-  if d.Tag != "" {
-    return d.Tag
-  } else {
-    return d.Digest
-  }
+	if d.Tag != "" {
+		return d.Tag
+	} else {
+		return d.Digest
+	}
 }
 
 func (d *GcrWebhookData) getImageTagOrDigest() string {
-  if d.Tag != "" {
-    return reference.ReferenceRegexp.FindStringSubmatch(d.Tag)[2]
-  } else {
-    return reference.ReferenceRegexp.FindStringSubmatch(d.Digest)[3]
-  }
+	if d.Tag != "" {
+		return reference.ReferenceRegexp.FindStringSubmatch(d.Tag)[2]
+	} else {
+		return reference.ReferenceRegexp.FindStringSubmatch(d.Digest)[3]
+	}
 }
 
 func (d *GcrWebhookData) getRepositoryDomain() string {
-  m := reference.ReferenceRegexp.FindStringSubmatch(d.getImageReference())[1]
-  return strings.Split(m, "/")[1]
+	m := reference.ReferenceRegexp.FindStringSubmatch(d.getImageReference())[1]
+	return strings.Split(m, "/")[1]
 }
 
 func (d *GcrWebhookData) getRepositoryName() string {
-  m := reference.ReferenceRegexp.FindStringSubmatch(d.getImageReference())[1]
-  return strings.Split(m, "/")[2]
+	m := reference.ReferenceRegexp.FindStringSubmatch(d.getImageReference())[1]
+	return strings.Split(m, "/")[2]
 }
 
 func (d *GcrWebhookData) rawJSON() (string, error) {
-  rawJSON, err := json.Marshal(d)
-  if err != nil {
-    return "", fmt.Errorf("Error marshaling data: %v", err)
-  }
-  return string(rawJSON), nil
+	rawJSON, err := json.Marshal(d)
+	if err != nil {
+		return "", fmt.Errorf("Error marshaling data: %v", err)
+	}
+	return string(rawJSON), nil
 }
 
 func newPubSubNotificationFromRequest(req *http.Request) (*pubSubNotification, error) {

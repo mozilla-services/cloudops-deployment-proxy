@@ -55,11 +55,11 @@ type DockerHubWebhookData struct {
 }
 
 func (d *DockerHubWebhookData) rawJSON() (string, error) {
-  rawJSON, err := json.Marshal(d)
-  if err != nil {
-    return "", fmt.Errorf("Error marshaling data: %v", err)
-  }
-  return string(rawJSON), nil
+	rawJSON, err := json.Marshal(d)
+	if err != nil {
+		return "", fmt.Errorf("Error marshaling data: %v", err)
+	}
+	return string(rawJSON), nil
 }
 
 // Callback calls data's callback_url

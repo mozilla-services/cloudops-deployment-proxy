@@ -53,20 +53,20 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-  rawJSON, err := hookData.rawJSON()
-  if err != nil {
-    log.Printf(err.Error())
-    http.Error(w, "Internal Service Error", http.StatusInternalServerError)
-    return
-  }
+	rawJSON, err := hookData.rawJSON()
+	if err != nil {
+		log.Printf(err.Error())
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
 
 	err = d.Jenkins.TriggerJenkinsJob(
-    hookData.Repository.Name,
-    hookData.Repository.Namespace,
-    hookData.PushData.Tag,
-    rawJSON,
-  )
-  if err != nil {
+		hookData.Repository.Name,
+		hookData.Repository.Namespace,
+		hookData.PushData.Tag,
+		rawJSON,
+	)
+	if err != nil {
 		log.Printf("Error triggering jenkins: %v", err)
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return
@@ -110,21 +110,21 @@ func (d *GcrWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-  rawJSON, err := hookData.rawJSON()
-  if err != nil {
-    log.Printf(err.Error())
-    http.Error(w, "Internal Service Error", http.StatusInternalServerError)
-    return
-  }
+	rawJSON, err := hookData.rawJSON()
+	if err != nil {
+		log.Printf(err.Error())
+		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
+		return
+	}
 
-  err = d.Jenkins.TriggerJenkinsJob(
-    hookData.getRepositoryName(),
-    hookData.getRepositoryDomain(),
-    hookData.getImageTagOrDigest(),
-    rawJSON,
-  )
+	err = d.Jenkins.TriggerJenkinsJob(
+		hookData.getRepositoryName(),
+		hookData.getRepositoryDomain(),
+		hookData.getImageTagOrDigest(),
+		rawJSON,
+	)
 
-  if err != nil {
+	if err != nil {
 		log.Printf("Error triggering jenkins: %v", err)
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return

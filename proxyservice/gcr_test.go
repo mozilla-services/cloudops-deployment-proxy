@@ -3,7 +3,7 @@ package proxyservice
 import (
 	"bytes"
 	"encoding/json"
-  "fmt"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -19,69 +19,69 @@ type GcrFixtureTest struct {
 }
 
 type GcrWebhookDataTest struct {
-  TestName string
-  InputJSON []byte
-  Expected string
-  ModFunc func(*GcrWebhookData) interface{}
+	TestName  string
+	InputJSON []byte
+	Expected  string
+	ModFunc   func(*GcrWebhookData) interface{}
 }
 
 func TestGcrWebhookData(t *testing.T) {
-  fixtures := []GcrWebhookDataTest{
-    {
-      TestName: "Get digest",
-      InputJSON: []byte(`{
+	fixtures := []GcrWebhookDataTest{
+		{
+			TestName: "Get digest",
+			InputJSON: []byte(`{
         "action":"INSERT",
         "digest":"gcr.io/my-project/hello-world@sha256:1d37e48f9ceff6d8030570cd36286a61"
       }`),
-      Expected: "sha256:1d37e48f9ceff6d8030570cd36286a61",
-      ModFunc: func(d *GcrWebhookData) interface{} {
-        return d.getImageTagOrDigest()
-      },
-    },
-    {
-      TestName: "Get tag",
-      InputJSON: []byte(`{
+			Expected: "sha256:1d37e48f9ceff6d8030570cd36286a61",
+			ModFunc: func(d *GcrWebhookData) interface{} {
+				return d.getImageTagOrDigest()
+			},
+		},
+		{
+			TestName: "Get tag",
+			InputJSON: []byte(`{
         "action":"INSERT",
         "tag":"gcr.io/my-project/hello-world:1.1"
       }`),
-      Expected: "1.1",
-      ModFunc: func(d *GcrWebhookData) interface{} {
-        return d.getImageTagOrDigest()
-      },
-    },
-    {
-      TestName: "Get repo name",
-      InputJSON: []byte(`{
+			Expected: "1.1",
+			ModFunc: func(d *GcrWebhookData) interface{} {
+				return d.getImageTagOrDigest()
+			},
+		},
+		{
+			TestName: "Get repo name",
+			InputJSON: []byte(`{
         "action":"INSERT",
         "tag":"gcr.io/my-project/hello-world:1.1"
       }`),
-      Expected: "hello-world",
-      ModFunc: func(d *GcrWebhookData) interface{} {
-        return d.getRepositoryName()
-      },
-    },
-    {
-      TestName: "Get domain name",
-      InputJSON: []byte(`{
+			Expected: "hello-world",
+			ModFunc: func(d *GcrWebhookData) interface{} {
+				return d.getRepositoryName()
+			},
+		},
+		{
+			TestName: "Get domain name",
+			InputJSON: []byte(`{
         "action":"INSERT",
         "tag":"gcr.io/my-project/hello-world:1.1"
       }`),
-      Expected: "my-project",
-      ModFunc: func(d *GcrWebhookData) interface{} {
-        return d.getRepositoryDomain()
-      },
-    },
-  }
+			Expected: "my-project",
+			ModFunc: func(d *GcrWebhookData) interface{} {
+				return d.getRepositoryDomain()
+			},
+		},
+	}
 
-  for _, fixture := range fixtures {
-    var data GcrWebhookData
-    err := json.Unmarshal(fixture.InputJSON, &data)
-    if err != nil {
-      t.Fatal(fmt.Errorf("Error unmarshaling json: %v", err))
-    }
-    result := fixture.ModFunc(&data)
-    assert.Equal(t, fixture.Expected, result, fixture.TestName)
-  }
+	for _, fixture := range fixtures {
+		var data GcrWebhookData
+		err := json.Unmarshal(fixture.InputJSON, &data)
+		if err != nil {
+			t.Fatal(fmt.Errorf("Error unmarshaling json: %v", err))
+		}
+		result := fixture.ModFunc(&data)
+		assert.Equal(t, fixture.Expected, result, fixture.TestName)
+	}
 }
 
 func TestGcrHandler(t *testing.T) {
