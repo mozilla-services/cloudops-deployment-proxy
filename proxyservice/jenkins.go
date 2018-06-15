@@ -95,7 +95,7 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 
 // TriggerJenkinsJob triggers a jenkins job
 // given docker repo name, docker repo namespace, and image tag
-func (j *Jenkins) TriggerJenkinsJob(repoName, namespace, tag, rawJSON string) error {
+func (j *Jenkins) TriggerJenkinsJob(jobName, repoName, namespace, tag, rawJSON string) error {
 	log.Printf("Triggering Jenkins Job for: %s %s with tag: %s", repoName, namespace, tag)
 
 	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(repoName) {
@@ -108,7 +108,7 @@ func (j *Jenkins) TriggerJenkinsJob(repoName, namespace, tag, rawJSON string) er
 		return fmt.Errorf("Invalid tag: %s", tag)
 	}
 
-	path := path.Join("/job/dockerhub/job",
+	path := path.Join("/job/", jobName, "/job",
 		namespace, "job", repoName)
 	params := url.Values{}
 	params.Set("Tag", tag)

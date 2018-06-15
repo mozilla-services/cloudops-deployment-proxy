@@ -60,6 +60,7 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 	}
 
 	err = d.Jenkins.TriggerJenkinsJob(
+		"dockerhub",
 		hookData.Repository.Name,
 		hookData.Repository.Namespace,
 		hookData.PushData.Tag,
@@ -114,6 +115,7 @@ func (d *GcrWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 	}
 
 	err = d.Jenkins.TriggerJenkinsJob(
+		"gcr",
 		hookData.getRepositoryName(),
 		hookData.getRepositoryDomain(),
 		hookData.getImageTagOrDigest(),
