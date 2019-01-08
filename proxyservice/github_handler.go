@@ -9,9 +9,10 @@ import (
 
 // GitHubWebhookHandler directs github webhooks to Jenkins
 type GitHubWebhookHandler struct {
-	Jenkins      *Jenkins
-	ValidOrgs    map[string]bool
-	SourceRanges []*net.IPNet
+	Jenkins          *Jenkins
+	ValidOrgs        map[string]bool
+	SourceRanges     []*net.IPNet
+	UseXForwardedFor bool
 }
 
 // NewGitHubWebhookHandler creates a new http handler
@@ -35,15 +36,22 @@ func (d *GitHubWebhookHandler) isValidOrg(org string) bool {
 	return d.ValidOrgs[org]
 }
 
+func (d *GitHubWebhookHandler) ipFromReq(req *http.Request) string {
+	if !d.UseXForwardedFor {
+		return req.RemoteAddr
+	}
+	return req.Header.Get("X-Forwarded-For")
+}
+
 func (d *GitHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
-	if !ipInRanges(req.RemoteAddr, d.SourceRanges) {
+	if reqIP := d.ipFromReq(req); !ipInRanges(reqIP, d.SourceRanges) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
-		log.Printf("Received POST from unknown IP: %s", req.RemoteAddr)
+		log.Printf("Received POST from unknown IP: %s", reqIP)
 		return
 	}
 

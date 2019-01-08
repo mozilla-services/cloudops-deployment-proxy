@@ -100,7 +100,7 @@ func (j *Jenkins) TriggerGithubJob(data *GitHubWebhookData) error {
 	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.payload.Repository.Owner.Name) {
 		return fmt.Errorf("Invalid Repository.Owner.Name: %s", data.payload.Repository.Owner.Name)
 	}
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.]{1,100}$`).MatchString(data.payload.Ref) {
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\./]{1,200}$`).MatchString(data.payload.Ref) {
 		return fmt.Errorf("Invalid Ref: %s", data.payload.Ref)
 	}
 

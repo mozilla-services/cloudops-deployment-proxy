@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -38,6 +39,11 @@ func main() {
 			Value:  &cli.StringSlice{"mozilla", "mozilla-services"},
 			EnvVar: "GITHUB_ORGS",
 		},
+		cli.BoolTFlag{
+			Name:   "github-x-forwarded-for",
+			Usage:  "Allow using X-Forwarded-For to validate source IP.",
+			EnvVar: "GITHUB_X_FORWARDED_FOR",
+		},
 		cli.StringFlag{
 			Name:   "jenkins-base-url",
 			Usage:  "For example: https://jenkins.example",
@@ -65,10 +71,17 @@ func main() {
 			c.String("jenkins-user"),
 			c.String("jenkins-password"),
 		)
-		githubHandler := proxyservice.NewGitHubWebhookHandler(
+
+		githubHandler, err := proxyservice.NewGitHubWebhookHandler(
 			jenkins,
 			c.StringSlice("valid-github-orgs")...,
 		)
+
+		if err != nil {
+			log.Fatalf("Could not create github handler: %s", err)
+		}
+
+		githubHandler.UseXForwardedFor = c.BoolT("github-x-forwarded-for")
 
 		dockerhubHandler := proxyservice.NewDockerHubWebhookHandler(
 			jenkins,
