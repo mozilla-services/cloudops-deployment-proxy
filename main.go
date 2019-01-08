@@ -54,7 +54,7 @@ func main() {
 			return cli.NewExitError(err.Error(), 1)
 		}
 
-		dockerhub_handler := proxyservice.NewDockerHubWebhookHandler(
+		dockerhubHandler := proxyservice.NewDockerHubWebhookHandler(
 			proxyservice.NewJenkins(
 				c.String("jenkins-base-url"),
 				c.String("jenkins-user"),
@@ -64,7 +64,7 @@ func main() {
 		)
 
 		mux := http.NewServeMux()
-		mux.Handle("/dockerhub", dockerhub_handler)
+		mux.Handle("/dockerhub", dockerhubHandler)
 		mux.HandleFunc("/__heartbeat__", func(w http.ResponseWriter, req *http.Request) {
 			w.Write([]byte("OK"))
 		})
