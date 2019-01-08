@@ -32,6 +32,12 @@ func main() {
 			Value:  &cli.StringSlice{"mozilla"},
 			EnvVar: "NAMESPACE",
 		},
+		cli.StringSliceFlag{
+			Name:   "valid-github-orgs",
+			Usage:  "Valid Github Orgs (can be used multiple times)",
+			Value:  &cli.StringSlice{"mozilla", "mozilla-services"},
+			EnvVar: "GITHUB_ORGS",
+		},
 		cli.StringFlag{
 			Name:   "jenkins-base-url",
 			Usage:  "For example: https://jenkins.example",
@@ -54,17 +60,24 @@ func main() {
 			return cli.NewExitError(err.Error(), 1)
 		}
 
+		jenkins := proxyservice.NewJenkins(
+			c.String("jenkins-base-url"),
+			c.String("jenkins-user"),
+			c.String("jenkins-password"),
+		)
+		githubHandler := proxyservice.NewGitHubWebhookHandler(
+			jenkins,
+			c.StringSlice("valid-github-orgs")...,
+		)
+
 		dockerhubHandler := proxyservice.NewDockerHubWebhookHandler(
-			proxyservice.NewJenkins(
-				c.String("jenkins-base-url"),
-				c.String("jenkins-user"),
-				c.String("jenkins-password"),
-			),
+			jenkins,
 			c.StringSlice("valid-namespace")...,
 		)
 
 		mux := http.NewServeMux()
 		mux.Handle("/dockerhub", dockerhubHandler)
+		mux.Handle("/github", dockerhubHandler)
 		mux.HandleFunc("/__heartbeat__", func(w http.ResponseWriter, req *http.Request) {
 			w.Write([]byte("OK"))
 		})

@@ -92,6 +92,30 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 	return nil
 }
 
+//TriggerGithubJob triggers a jenkins job given
+func (j *Jenkins) TriggerGithubJob(data *GitHubWebhookData) error {
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.payload.Repository.Name) {
+		return fmt.Errorf("Invalid Repository.Name: %s", data.payload.Repository.Name)
+	}
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.payload.Repository.Owner.Name) {
+		return fmt.Errorf("Invalid Repository.Owner.Name: %s", data.payload.Repository.Owner.Name)
+	}
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\.]{1,100}$`).MatchString(data.payload.Ref) {
+		return fmt.Errorf("Invalid Ref: %s", data.payload.Ref)
+	}
+
+	rawJSON, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("Error marshaling data: %v", err)
+	}
+	path := path.Join("/job/github/job",
+		data.payload.Repository.Owner.Name, "job", data.payload.Repository.Name)
+	params := url.Values{}
+	params.Set("Ref", data.payload.Ref)
+	params.Set("RawJSON", string(rawJSON))
+	return j.TriggerJob(path, params)
+}
+
 // TriggerDockerhubJob triggers a jenkins job
 // given DockerHubWebhookData
 func (j *Jenkins) TriggerDockerhubJob(data *DockerHubWebhookData) error {
