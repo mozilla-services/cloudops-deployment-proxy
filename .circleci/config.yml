@@ -55,7 +55,7 @@ jobs:
               docker push "${DOCKERHUB_REPO}:${CIRCLE_TAG}"
             fi
 workflows:
-  version: 2
+  version: 2.1
   build-deploy:
     jobs:
       - build:
