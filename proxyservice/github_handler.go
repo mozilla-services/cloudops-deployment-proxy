@@ -64,16 +64,16 @@ func (d *GitHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if !d.isValidOrg(hookData.payload.Repository.Owner.Name) {
-		log.Printf("Invalid Org: %s", hookData.payload.Repository.Owner.Name)
+	if !d.isValidOrg(hookData.Org()) {
+		log.Printf("Invalid Org: %s", hookData.Org())
 		http.Error(w, "Invalid Org", http.StatusUnauthorized)
 		return
 	}
 
 	log.Printf("Triggering Jenkins Job for: %s %s with ref: %s",
-		hookData.payload.Repository.Owner.Name,
-		hookData.payload.Repository.Name,
-		hookData.payload.Ref,
+		hookData.Org(),
+		hookData.Repo(),
+		hookData.Ref(),
 	)
 
 	if err := d.Jenkins.TriggerGithubJob(hookData); err != nil {

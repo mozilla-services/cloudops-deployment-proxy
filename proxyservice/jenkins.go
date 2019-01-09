@@ -94,24 +94,24 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 
 //TriggerGithubJob triggers a jenkins job given
 func (j *Jenkins) TriggerGithubJob(data *GitHubWebhookData) error {
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.payload.Repository.Name) {
-		return fmt.Errorf("Invalid Repository.Name: %s", data.payload.Repository.Name)
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Repo()) {
+		return fmt.Errorf("Invalid Repository.Name: %s", data.Repo())
 	}
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.payload.Repository.Owner.Name) {
-		return fmt.Errorf("Invalid Repository.Owner.Name: %s", data.payload.Repository.Owner.Name)
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Org()) {
+		return fmt.Errorf("Invalid Repository.Owner.Name: %s", data.Org())
 	}
-	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\./]{1,200}$`).MatchString(data.payload.Ref) {
-		return fmt.Errorf("Invalid Ref: %s", data.payload.Ref)
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-\./]{1,200}$`).MatchString(data.Ref()) {
+		return fmt.Errorf("Invalid Ref: %s", data.Ref())
 	}
 
-	rawJSON, err := json.Marshal(data)
+	rawJSON, err := data.ToJSON()
 	if err != nil {
-		return fmt.Errorf("Error marshaling data: %v", err)
+		return err
 	}
 	path := path.Join("/job/github/job",
-		data.payload.Repository.Owner.Name, "job", data.payload.Repository.Name)
+		data.Org(), "job", data.Repo())
 	params := url.Values{}
-	params.Set("Ref", data.payload.Ref)
+	params.Set("Ref", data.Ref())
 	params.Set("RawJSON", string(rawJSON))
 	return j.TriggerJob(path, params)
 }

@@ -148,6 +148,26 @@ type GitHubWebhookData struct {
 	payload *githubPushWebhookPayload
 }
 
+func (g *GitHubWebhookData) Repo() string {
+	return g.payload.Repository.Name
+}
+
+func (g *GitHubWebhookData) Ref() string {
+	return g.payload.Ref
+}
+
+func (g *GitHubWebhookData) Org() string {
+	return g.payload.Repository.Owner.Name
+}
+
+func (g *GitHubWebhookData) ToJSON() ([]byte, error) {
+	rawJSON, err := json.Marshal(g.payload)
+	if err != nil {
+		return nil, fmt.Errorf("Error marshaling data: %v", err)
+	}
+	return rawJSON, nil
+}
+
 // NewGitHubWebhookDataFromRequest returns GitHubWebhookData based on incoming http request.
 func NewGitHubWebhookDataFromRequest(req *http.Request) (*GitHubWebhookData, error) {
 	if req.Header.Get("X-Github-Event") != "push" {
