@@ -116,3 +116,25 @@ func (j *Jenkins) TriggerDockerhubJob(data *DockerHubWebhookData) error {
 	params.Set("RawJSON", string(rawJSON))
 	return j.TriggerJob(path, params)
 }
+
+// triggers a jenkins job given
+func (j *Jenkins) TriggerTaskclusterJob(taskID string, route string, data *TaskCompletedMessage) error {
+	if !regexp.MustCompile(`^[A-Za-z0-9_-]{8}[Q-T][A-Za-z0-9_-][CGKOSWaeimquy26-][A-Za-z0-9_-]{10}[AQgw]$`).MatchString(taskID) {
+		return fmt.Errorf("Invalid taskID: %s", taskID)
+	}
+	// FIXME: This should probably be split on .
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(route) {
+		return fmt.Errorf("Invalid data.Repository.Namespace: %s", route)
+	}
+
+	rawJSON, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("Error marshaling data: %v", err)
+	}
+	path := path.Join("/job/taskcluster/job",
+		route, "job", route)
+	params := url.Values{}
+	params.Set("TASK_ID", taskID)
+	params.Set("RawJSON", string(rawJSON))
+	return j.TriggerJob(path, params)
+}

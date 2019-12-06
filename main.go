@@ -9,6 +9,8 @@ import (
 	"go.mozilla.org/mozlog"
 
 	"github.com/urfave/cli"
+
+	"github.com/taskcluster/pulse-go/pulse"
 )
 
 func init() {
@@ -47,6 +49,34 @@ func main() {
 			Usage:  "Password for authing against jenkins",
 			EnvVar: "JENKINS_PASSWORD",
 		},
+		cli.StringFlag{
+			Name:   "cloudops-pulse-prefix",
+			Usage:  "Pulse route to listen to.",
+			Value:  "cloudops.v1.deploy",
+			EnvVar: "CLOUDOPS_PULSE_PREFIX",
+		},
+		cli.StringFlag{
+			Name:   "pulse-queue",
+			Usage:  "Pulse quue to listen to.",
+			Value:  "deploy-proxy",
+			EnvVar: "PULSE_QUEUE",
+		},
+		cli.StringFlag{
+			Name:   "pulse-username",
+			Usage:  "Username for authing against pulse",
+			EnvVar: "PULSE_USERNAME",
+		},
+		cli.StringFlag{
+			Name:   "pulse-password",
+			Usage:  "Password for authing against pulse",
+			EnvVar: "PULSE_PASSWORD",
+		},
+		cli.StringFlag{
+			Name:   "pulse-password",
+			Usage:  "Password for authing against pulse",
+			Value:  "",
+			EnvVar: "PULSE_HOST",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -71,6 +101,21 @@ func main() {
 		mux.HandleFunc("/__lbheartbeat__", func(w http.ResponseWriter, req *http.Request) {
 			w.Write([]byte("OK"))
 		})
+
+		pulse := pulse.NewConnection(
+			c.String("pulse-username"),
+			c.String("pulse-password"),
+			c.String("pulse-host"),
+		)
+		taskclusterPulseHandler := proxyservice.NewTaskclusterPulseHandler(
+			jenkins,
+			&pulse,
+			c.String("cloudops-pulse-prefix"),
+		)
+
+		if err := taskclusterPulseHandler.Consume(); err != nil {
+			return cli.NewExitError(fmt.Sprintf("Could not listen to pulse: %v", err), 1)
+		}
 
 		server := &http.Server{
 			Addr:    c.String("addr"),
