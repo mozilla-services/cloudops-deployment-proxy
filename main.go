@@ -17,8 +17,8 @@ func init() {
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "cloudops-deployment-dockerhub-proxy"
-	app.Usage = "Listens for requests from dockerhub webhooks and triggers Jenkins pipelines."
+	app.Name = "cloudops-deployment-proxy"
+	app.Usage = "Listens for requests from dockerhub and travisci webhooks and triggers Jenkins pipelines."
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:   "addr, a",
@@ -54,7 +54,7 @@ func main() {
 			return cli.NewExitError(err.Error(), 1)
 		}
 
-		handler := proxyservice.NewDockerHubWebhookHandler(
+		dockerhandler := proxyservice.NewDockerHubWebhookHandler(
 			proxyservice.NewJenkins(
 				c.String("jenkins-base-url"),
 				c.String("jenkins-user"),
@@ -63,8 +63,15 @@ func main() {
 			c.StringSlice("valid-namespace")...,
 		)
 
+		travishuandler := proxyservice.NewTravisWebhookHandler(
+		// TODO Implement me to include a newjenkins service, namespace, and other things?
+		// newfile proxyservice/travis.go and add handler to handlers.go and add trigger func to jenkins.go
+                // add tests
+		)
+
 		mux := http.NewServeMux()
-		mux.Handle("/dockerhub", handler)
+		mux.Handle("/dockerhub", dockerhandler)
+		mux.Handle("/travis", githubhandler)
 		mux.HandleFunc("/__heartbeat__", func(w http.ResponseWriter, req *http.Request) {
 			w.Write([]byte("OK"))
 		})
