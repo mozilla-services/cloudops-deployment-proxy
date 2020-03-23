@@ -1,0 +1,10 @@
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/stretchr/testify v1.1.4-0.20160524234229-8d64eb7173c7 h1:5KNW+VDCZxdFJasHPW1AehzhTIm69pHQq2psutjjXRk=
+github.com/stretchr/testify v1.1.4-0.20160524234229-8d64eb7173c7/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+github.com/urfave/cli v1.17.1-0.20160608151511-fa949b48f384 h1:nYZrQfefkHIWNPwwIToQOnTeZ5nQt4nUHiS4wHQBWSA=
+github.com/urfave/cli v1.17.1-0.20160608151511-fa949b48f384/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
+go.mozilla.org/mozlog v0.0.0-20160610165107-cd74695caf44 h1:ZwI2d4V8jjame21x82EXAGuKKStymcxBsNt0hkN4/5E=
+go.mozilla.org/mozlog v0.0.0-20160610165107-cd74695caf44/go.mod h1:jHoPAGnDrCy6kaI2tAze5Prf0Nr0w/oNkROt2lw3n3o=
