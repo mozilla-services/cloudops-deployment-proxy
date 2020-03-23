@@ -2,6 +2,7 @@ package proxyservice
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/streadway/amqp"
@@ -28,15 +29,15 @@ func (binding routeTaskCompleted) NewPayloadObject() interface{} {
 }
 
 type TaskclusterPulseHandler struct {
-	Jenkins         	*Jenkins
-	Pulse			*pulse.Connection
-	PulseRoutePrefix	string
+	Jenkins          *Jenkins
+	Pulse            *pulse.Connection
+	PulseRoutePrefix string
 }
 
 func NewTaskclusterPulseHandler(jenkins *Jenkins, pulse *pulse.Connection, routePrefix string) *TaskclusterPulseHandler {
 	return &TaskclusterPulseHandler{
-		Jenkins: jenkins,
-		Pulse: pulse,
+		Jenkins:          jenkins,
+		Pulse:            pulse,
 		PulseRoutePrefix: routePrefix,
 	}
 }
@@ -62,8 +63,8 @@ func (handler *TaskclusterPulseHandler) Consume() error {
 		"", // queue name
 		handler.handleMessage,
 		1,     // prefetch 1 message at a time
-		false,   // don't autoacknowledge messages
-		routeTaskCompleted{Route:routingKeyPrefix+".#"},
-		)
+		false, // don't autoacknowledge messages
+		routeTaskCompleted{Route: routingKeyPrefix + ".#"},
+	)
 	return err
 }
