@@ -52,7 +52,7 @@ jobs:
 
       - run:
           name: Test Code
-          command: docker run app:build test
+          command: docker run app:build go test -mod vendor -v ./...
 
   deploy:
     docker:
