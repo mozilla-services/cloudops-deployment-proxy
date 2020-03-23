@@ -1,9 +1,10 @@
-FROM golang:1
+FROM golang:1.14
 
-COPY version.json /app/version.json
-COPY . /go/src/go.mozilla.org/cloudops-deployment-proxy
-RUN go install go.mozilla.org/cloudops-deployment-proxy
+COPY . /app
 
+WORKDIR /app
 EXPOSE 8000
+
+RUN go install -mod vendor go.mozilla.org/cloudops-deployment-proxy
 
 CMD ["cloudops-deployment-proxy"]
