@@ -1,8 +1,3 @@
 language: go
 go:
   - 1.x
-  - tip
-
-go_import_path: go.mozilla.org/cloudops-deployment-proxy
-
-install: true
