@@ -1,12 +1,23 @@
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
+# github.com/google/uuid v1.0.0
+github.com/google/uuid
+# github.com/pborman/uuid v1.2.0
+## explicit
+github.com/pborman/uuid
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
+## explicit
+github.com/streadway/amqp
 # github.com/stretchr/testify v1.1.4-0.20160524234229-8d64eb7173c7
 ## explicit
 github.com/stretchr/testify/assert
+# github.com/taskcluster/pulse-go v1.0.0
+## explicit
+github.com/taskcluster/pulse-go/pulse
 # github.com/urfave/cli v1.17.1-0.20160608151511-fa949b48f384
 ## explicit
 github.com/urfave/cli
