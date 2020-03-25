@@ -77,6 +77,24 @@ func main() {
 			Value:  "hgmo",
 			EnvVar: "HGMO_PULSE_QUEUE",
 		},
+		cli.StringFlag{
+			Name:   "cloudops-deploy-pulse-prefix",
+			Usage:  "Pulse route to listen to.",
+			Value:  "cloudops.deploy.v1",
+			EnvVar: "CLOUDOPS_DEPLOY_PULSE_PREFIX",
+		},
+		cli.StringFlag{
+			Name:   "cloudops-deploy-pulse-queue",
+			Usage:  "Pulse queue to listen to.",
+			Value:  "deploy-proxy",
+			EnvVar: "CLOUDOPS_DEPLOY_PULSE_QUEUE",
+		},
+		cli.StringFlag{
+			Name:   "taskcluster-root-url",
+			Usage:  "Taskcluster root URL",
+			Value:  "https://firefox-ci-tc.services.mozilla.com",
+			EnvVar: "TASKCLUSTER_ROOT_URL",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -110,6 +128,18 @@ func main() {
 				c.String("pulse-password"),
 				c.String("pulse-host"),
 			)
+
+			taskclusterPulseHandler := proxyservice.NewTaskclusterPulseHandler(
+				jenkins,
+				&pulse,
+				c.String("cloudops-deploy-pulse-queue"),
+				c.String("cloudops-deploy-pulse-prefix"),
+				c.String("taskcluster-root-url"),
+			)
+
+			if err := taskclusterPulseHandler.Consume(); err != nil {
+				return cli.NewExitError(fmt.Sprintf("Could not listen to taskcluster pulse: %v", err), 1)
+			}
 
 			hgmoPulseHandler := proxyservice.NewHgmoPulseHandler(
 				jenkins,

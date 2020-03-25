@@ -138,3 +138,25 @@ func TriggerHgJob(j Jenkins, repoPath string, repoUrl string, head string, data 
 	params.Set("RawJSON", string(rawJSON))
 	return j.TriggerJob(path, params)
 }
+
+func TriggerTaskclusterJob(j Jenkins, route string, deploy DeployExtra, data *TaskCompletedMessage) error {
+	// FIXME: This should probably be split on .
+	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(route) {
+		return fmt.Errorf("Invalid data.Repository.Namespace: %s", route)
+	}
+
+	rawJSON, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("Error marshaling data: %v", err)
+	}
+	path := path.Join("/job/taskcluster/job",
+		route, "job", route)
+	params := url.Values{}
+	params.Set("IMAGE_TASK_ID", deploy.ImageTaskId)
+	if deploy.Variant != "" {
+		params.Set("VARIANT", deploy.Variant)
+	}
+	params.Set("RawJSON", string(rawJSON))
+	return j.TriggerJob(path, params)
+}
+
