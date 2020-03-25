@@ -120,3 +120,21 @@ func TriggerDockerhubJob(j Jenkins, data *DockerHubWebhookData) error {
 	params.Set("RawJSON", string(rawJSON))
 	return j.TriggerJob(path, params)
 }
+
+func TriggerHgJob(j Jenkins, repoPath string, repoUrl string, head string, data *HgMessage) error {
+	matches := regexp.MustCompile("^([A-Za-z][A-Za-z0-9-]*)/([A-Za-z][A-Za-z0-9-]*)$").FindStringSubmatch(repoPath)
+	if len(matches) != 3 {
+		return fmt.Errorf("Invalid hg.mozilla.org repository path: %s", repoPath)
+	}
+
+	rawJSON, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("Error marshaling data: %v", err)
+	}
+	path := path.Join("/job/hgmo/job", matches[1], "job", matches[2])
+	params := url.Values{}
+	params.Set("HEAD_REPOSITORY", repoUrl)
+	params.Set("HEAD_REV", head)
+	params.Set("RawJSON", string(rawJSON))
+	return j.TriggerJob(path, params)
+}

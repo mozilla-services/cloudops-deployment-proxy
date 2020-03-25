@@ -1,7 +1,10 @@
 package proxyservice
 
 import (
+	"bytes"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -33,4 +36,30 @@ func sendRequest(method, url string, body io.Reader, h http.Handler) *httptest.R
 	recorder := new(httptest.ResponseRecorder)
 	h.ServeHTTP(recorder, req)
 	return recorder
+}
+
+func loadFixture(path string) []byte {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("loadFixture: %s", err)
+		panic(err)
+	}
+	return data
+}
+
+type LogCapture struct {
+	Messages  bytes.Buffer
+	oldWriter io.Writer
+}
+
+func (l *LogCapture) Start() {
+	l.oldWriter = log.Writer()
+	log.SetOutput(io.MultiWriter(&l.Messages, l.oldWriter))
+}
+
+func (l *LogCapture) Reset() {
+	if l.oldWriter != nil {
+		log.SetOutput(l.oldWriter)
+		l.oldWriter = nil
+	}
 }

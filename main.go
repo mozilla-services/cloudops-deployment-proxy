@@ -65,6 +65,18 @@ func main() {
 			Value:  "",
 			EnvVar: "PULSE_HOST",
 		},
+		cli.StringSliceFlag{
+			Name:   "hgmo-repo",
+			Usage:  "hg.mozilla.org repo to listend to pushes from (can be used multiple times)",
+			Value:  &cli.StringSlice{"ci/ci-admin", "ci/ci-configuration"},
+			EnvVar: "HGMO_REPO",
+		},
+		cli.StringFlag{
+			Name:   "hgmo-pulse-queue",
+			Usage:  "Pulse queue to listen to.",
+			Value:  "hgmo",
+			EnvVar: "HGMO_PULSE_QUEUE",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -98,6 +110,17 @@ func main() {
 				c.String("pulse-password"),
 				c.String("pulse-host"),
 			)
+
+			hgmoPulseHandler := proxyservice.NewHgmoPulseHandler(
+				jenkins,
+				&pulse,
+				c.String("hgmo-pulse-queue"),
+				c.StringSlice("hgmo-repo")...,
+			)
+
+			if err := hgmoPulseHandler.Consume(); err != nil {
+				return cli.NewExitError(fmt.Sprintf("Could not listen to hgmo pulse: %v", err), 1)
+			}
 		}
 
 		server := &http.Server{
