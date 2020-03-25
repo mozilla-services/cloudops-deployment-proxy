@@ -1,10 +1,13 @@
+# github.com/cenkalti/backoff/v3 v3.0.0
+github.com/cenkalti/backoff/v3
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
+# github.com/fatih/camelcase v1.0.0
+github.com/fatih/camelcase
 # github.com/google/uuid v1.0.0
 github.com/google/uuid
 # github.com/pborman/uuid v1.2.0
-## explicit
 github.com/pborman/uuid
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
@@ -15,12 +18,29 @@ github.com/streadway/amqp
 # github.com/stretchr/testify v1.1.4-0.20160524234229-8d64eb7173c7
 ## explicit
 github.com/stretchr/testify/assert
+# github.com/taskcluster/httpbackoff/v3 v3.0.0
+github.com/taskcluster/httpbackoff/v3
+# github.com/taskcluster/jsonschema2go v1.0.0
+github.com/taskcluster/jsonschema2go/text
 # github.com/taskcluster/pulse-go v1.0.0
 ## explicit
 github.com/taskcluster/pulse-go/pulse
+# github.com/taskcluster/slugid-go v1.1.0
+github.com/taskcluster/slugid-go/slugid
+# github.com/taskcluster/taskcluster-lib-urls v12.0.0+incompatible
+github.com/taskcluster/taskcluster-lib-urls
+# github.com/taskcluster/taskcluster/clients/client-go/v23 v23.0.0
+## explicit
+github.com/taskcluster/taskcluster/clients/client-go/v23
+github.com/taskcluster/taskcluster/clients/client-go/v23/tcqueue
+github.com/taskcluster/taskcluster/clients/client-go/v23/tcqueueevents
+# github.com/tent/hawk-go v0.0.0-20161026210932-d341ea318957
+github.com/tent/hawk-go
 # github.com/urfave/cli v1.17.1-0.20160608151511-fa949b48f384
 ## explicit
 github.com/urfave/cli
 # go.mozilla.org/mozlog v0.0.0-20160610165107-cd74695caf44
 ## explicit
 go.mozilla.org/mozlog
+# launchpad.net/gocheck v0.0.0-20140225173054-000000000087
+## explicit
