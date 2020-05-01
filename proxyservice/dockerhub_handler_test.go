@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -29,15 +30,13 @@ type DockerhubFixtureTest struct {
 	TestName   string
 	StatusCode int
 	ModFunc    func(*DockerHubWebhookData) *DockerHubWebhookData
+	Jobs       []JenkinsJob
 }
 
 func TestDockerHubHandler(t *testing.T) {
+	jenkins := NewFakeJenkins()
 	handler := NewDockerHubWebhookHandler(
-		NewJenkins(
-			fakeJenkins.URL,
-			"fakeuser",
-			"fakepass",
-		),
+		jenkins,
 		"mozilla",
 	)
 
@@ -109,16 +108,24 @@ func TestDockerHubHandler(t *testing.T) {
 				data.CallbackURL = fmt.Sprintf("%s/u/mozilla/testrepo/hook/2020202020/", fakeDockerHub.URL)
 				return data
 			},
+			Jobs: []JenkinsJob{{
+				"/job/dockerhub/job/mozilla/job/testrepo",
+				url.Values{"Tag": {"v1.1.1"}},
+			}},
 		},
 	}
 	for _, fixture := range fixtures {
-		data := fixture.ModFunc(baseDockerHubWebhookData())
-		dataBytes, err := json.Marshal(data)
-		if err != nil {
-			t.Fatal(err)
-		}
-		resp = sendRequest("POST", "http://test/dockerhub", bytes.NewReader(dataBytes), handler)
-		assert.Equal(t, fixture.StatusCode, resp.Code, fixture.TestName)
+		jenkins.Jobs = nil
+		t.Run(fixture.TestName, func(t *testing.T) {
+			data := fixture.ModFunc(baseDockerHubWebhookData())
+			dataBytes, err := json.Marshal(data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp = sendRequest("POST", "http://test/dockerhub", bytes.NewReader(dataBytes), handler)
+			assert.Equal(t, fixture.StatusCode, resp.Code, fixture.TestName)
+			assert.Equal(t, fixture.Jobs, jenkins.Jobs, fixture.TestName)
+		})
 	}
 }
 

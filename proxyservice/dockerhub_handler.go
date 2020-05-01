@@ -6,11 +6,11 @@ import (
 )
 
 type DockerHubWebhookHandler struct {
-	Jenkins         *Jenkins
+	Jenkins         Jenkins
 	ValidNameSpaces map[string]bool
 }
 
-func NewDockerHubWebhookHandler(jenkins *Jenkins, nameSpaces ...string) *DockerHubWebhookHandler {
+func NewDockerHubWebhookHandler(jenkins Jenkins, nameSpaces ...string) *DockerHubWebhookHandler {
 	validNameSpaces := make(map[string]bool)
 	for _, nameSpace := range nameSpaces {
 		validNameSpaces[nameSpace] = true
@@ -58,7 +58,7 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		hookData.PushData.Tag,
 	)
 
-	if err := d.Jenkins.TriggerDockerhubJob(hookData); err != nil {
+	if err := TriggerDockerhubJob(d.Jenkins, hookData); err != nil {
 		log.Printf("Error triggering jenkins: %v", err)
 		http.Error(w, "Internal Service Error", http.StatusInternalServerError)
 		return

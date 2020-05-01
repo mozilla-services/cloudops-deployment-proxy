@@ -4,16 +4,26 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 )
 
-var fakeJenkins = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	if req.URL.Path == "/crumbIssuer/api/json" {
-		w.Write([]byte(`{"crumb": "crmb", "crumbRequestField": "Jenkins-Crumb"}`))
-		return
-	}
-	w.WriteHeader(201)
-}))
+type JenkinsJob struct {
+	path   string
+	params url.Values
+}
+type FakeJenkins struct {
+	Jobs []JenkinsJob
+}
 
+func NewFakeJenkins() *FakeJenkins {
+	return &FakeJenkins{}
+}
+
+func (j *FakeJenkins) TriggerJob(path string, params url.Values) error {
+	params.Del("RawJSON")
+	j.Jobs = append(j.Jobs, JenkinsJob{path, params})
+	return nil
+}
 
 func sendRequest(method, url string, body io.Reader, h http.Handler) *httptest.ResponseRecorder {
 	req, err := http.NewRequest(method, url, body)
