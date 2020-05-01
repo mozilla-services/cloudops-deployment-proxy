@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -13,14 +12,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
-
-var fakeJenkins = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	if req.URL.Path == "/crumbIssuer/api/json" {
-		w.Write([]byte(`{"crumb": "crmb", "crumbRequestField": "Jenkins-Crumb"}`))
-		return
-	}
-	w.WriteHeader(201)
-}))
 
 var fakeDockerHub = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 	if strings.HasSuffix(req.URL.Path, "fail") {
@@ -34,23 +25,13 @@ func init() {
 	DockerhubRegistry = fakeDockerHub.URL
 }
 
-func sendRequest(method, url string, body io.Reader, h http.Handler) *httptest.ResponseRecorder {
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		panic(err)
-	}
-	recorder := new(httptest.ResponseRecorder)
-	h.ServeHTTP(recorder, req)
-	return recorder
-}
-
 type DockerhubFixtureTest struct {
 	TestName   string
 	StatusCode int
 	ModFunc    func(*DockerHubWebhookData) *DockerHubWebhookData
 }
 
-func TestHandler(t *testing.T) {
+func TestDockerHubHandler(t *testing.T) {
 	handler := NewDockerHubWebhookHandler(
 		NewJenkins(
 			fakeJenkins.URL,
@@ -131,7 +112,7 @@ func TestHandler(t *testing.T) {
 		},
 	}
 	for _, fixture := range fixtures {
-		data := fixture.ModFunc(baseWebhookData())
+		data := fixture.ModFunc(baseDockerHubWebhookData())
 		dataBytes, err := json.Marshal(data)
 		if err != nil {
 			t.Fatal(err)
@@ -141,7 +122,7 @@ func TestHandler(t *testing.T) {
 	}
 }
 
-func baseWebhookData() *DockerHubWebhookData {
+func baseDockerHubWebhookData() *DockerHubWebhookData {
 	f, err := os.Open("fixtures/dockerhub_base.json")
 	if err != nil {
 		panic(err)
