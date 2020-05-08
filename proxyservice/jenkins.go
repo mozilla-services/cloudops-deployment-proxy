@@ -16,16 +16,20 @@ type JenkinsCrumbIssuer struct {
 	CrumbRequestField string `json:"crumbRequestField"`
 }
 
-type Jenkins struct {
+type JenkinsServer struct {
 	BaseURL string
 
 	User     string
 	Password string
 }
 
+type Jenkins interface {
+	TriggerJob(jobPath string, params url.Values) error
+}
+
 // NewJenkins returns a new Jenkins instance
-func NewJenkins(baseURL, user, password string) *Jenkins {
-	return &Jenkins{
+func NewJenkins(baseURL, user, password string) Jenkins {
+	return &JenkinsServer{
 		BaseURL:  baseURL,
 		User:     user,
 		Password: password,
@@ -34,7 +38,7 @@ func NewJenkins(baseURL, user, password string) *Jenkins {
 
 // NewRequest builds a authed jenkins request.
 // path must be the absolute path starting with "/"
-func (j *Jenkins) NewRequest(method, path string, body io.Reader) (*http.Request, error) {
+func (j *JenkinsServer) NewRequest(method, path string, body io.Reader) (*http.Request, error) {
 	url := j.BaseURL + path
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
@@ -44,7 +48,7 @@ func (j *Jenkins) NewRequest(method, path string, body io.Reader) (*http.Request
 	return req, nil
 }
 
-func (j *Jenkins) setCSRFToken(req *http.Request) error {
+func (j *JenkinsServer) setCSRFToken(req *http.Request) error {
 	csrfReq, err := j.NewRequest("GET", "/crumbIssuer/api/json", nil)
 	if err != nil {
 		return fmt.Errorf("Error building csrf request: %v", err)
@@ -66,7 +70,7 @@ func (j *Jenkins) setCSRFToken(req *http.Request) error {
 }
 
 // PostForm posts a authed request to jenkins BaseURL + path
-func (j *Jenkins) PostForm(path string, data url.Values) (*http.Response, error) {
+func (j *JenkinsServer) PostForm(path string, data url.Values) (*http.Response, error) {
 	req, err := j.NewRequest("POST", path, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
@@ -80,7 +84,7 @@ func (j *Jenkins) PostForm(path string, data url.Values) (*http.Response, error)
 
 // TriggerJob triggers a jenkins job
 // jobPath should be the full path to the job e.g., /job/pipelines/job/myjob/
-func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
+func (j *JenkinsServer) TriggerJob(jobPath string, params url.Values) error {
 	resp, err := j.PostForm(path.Join(jobPath, "buildWithParameters"), params)
 	if err != nil {
 		return fmt.Errorf("Error posting to jenkins: %v", err)
@@ -94,7 +98,7 @@ func (j *Jenkins) TriggerJob(jobPath string, params url.Values) error {
 
 // TriggerDockerhubJob triggers a jenkins job
 // given DockerHubWebhookData
-func (j *Jenkins) TriggerDockerhubJob(data *DockerHubWebhookData) error {
+func TriggerDockerhubJob(j Jenkins, data *DockerHubWebhookData) error {
 	if !regexp.MustCompile(`^[a-zA-Z0-9_\-]{2,255}$`).MatchString(data.Repository.Name) {
 		return fmt.Errorf("Invalid data.Repository.Name: %s", data.Repository.Name)
 	}

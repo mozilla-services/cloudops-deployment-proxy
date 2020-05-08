@@ -4,23 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-var fakeJenkins = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-	if req.URL.Path == "/crumbIssuer/api/json" {
-		w.Write([]byte(`{"crumb": "crmb", "crumbRequestField": "Jenkins-Crumb"}`))
-		return
-	}
-	w.WriteHeader(201)
-}))
 
 var fakeDockerHub = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 	if strings.HasSuffix(req.URL.Path, "fail") {
@@ -34,29 +26,17 @@ func init() {
 	DockerhubRegistry = fakeDockerHub.URL
 }
 
-func sendRequest(method, url string, body io.Reader, h http.Handler) *httptest.ResponseRecorder {
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		panic(err)
-	}
-	recorder := new(httptest.ResponseRecorder)
-	h.ServeHTTP(recorder, req)
-	return recorder
-}
-
 type DockerhubFixtureTest struct {
 	TestName   string
 	StatusCode int
 	ModFunc    func(*DockerHubWebhookData) *DockerHubWebhookData
+	Jobs       []JenkinsJob
 }
 
-func TestHandler(t *testing.T) {
+func TestDockerHubHandler(t *testing.T) {
+	jenkins := NewFakeJenkins()
 	handler := NewDockerHubWebhookHandler(
-		NewJenkins(
-			fakeJenkins.URL,
-			"fakeuser",
-			"fakepass",
-		),
+		jenkins,
 		"mozilla",
 	)
 
@@ -128,20 +108,28 @@ func TestHandler(t *testing.T) {
 				data.CallbackURL = fmt.Sprintf("%s/u/mozilla/testrepo/hook/2020202020/", fakeDockerHub.URL)
 				return data
 			},
+			Jobs: []JenkinsJob{{
+				"/job/dockerhub/job/mozilla/job/testrepo",
+				url.Values{"Tag": {"v1.1.1"}},
+			}},
 		},
 	}
 	for _, fixture := range fixtures {
-		data := fixture.ModFunc(baseWebhookData())
-		dataBytes, err := json.Marshal(data)
-		if err != nil {
-			t.Fatal(err)
-		}
-		resp = sendRequest("POST", "http://test/dockerhub", bytes.NewReader(dataBytes), handler)
-		assert.Equal(t, fixture.StatusCode, resp.Code, fixture.TestName)
+		jenkins.Jobs = nil
+		t.Run(fixture.TestName, func(t *testing.T) {
+			data := fixture.ModFunc(baseDockerHubWebhookData())
+			dataBytes, err := json.Marshal(data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp = sendRequest("POST", "http://test/dockerhub", bytes.NewReader(dataBytes), handler)
+			assert.Equal(t, fixture.StatusCode, resp.Code, fixture.TestName)
+			assert.Equal(t, fixture.Jobs, jenkins.Jobs, fixture.TestName)
+		})
 	}
 }
 
-func baseWebhookData() *DockerHubWebhookData {
+func baseDockerHubWebhookData() *DockerHubWebhookData {
 	f, err := os.Open("fixtures/dockerhub_base.json")
 	if err != nil {
 		panic(err)
