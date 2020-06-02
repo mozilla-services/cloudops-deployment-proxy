@@ -3,7 +3,10 @@ package proxyservice
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"strings"
 
 	"github.com/streadway/amqp"
 	"github.com/taskcluster/pulse-go/pulse"
@@ -50,6 +53,63 @@ func (msg *HgMessage) UnmarshalJSON(b []byte) error {
 		return nil
 	}
 	return fmt.Errorf("Unknown hg message type %s", msg.Type)
+}
+
+type PushJson struct {
+	Lastpushid int `json:"lastpushid"`
+	Pushes     map[int]struct {
+		Changesets []string `json:"changesets"`
+		Date       int      `json:"date"`
+		User       string   `json:"user"`
+	} `json:"pushes"`
+}
+
+func (msg *ChangegroupMessage) VerifyMessage(repoPath string) error {
+	repoUrl := fmt.Sprintf("https://hg.mozilla.org/%s", repoPath)
+	if msg.RepoUrl != repoUrl {
+		return fmt.Errorf("Message %v has repoUrl %s which doesn't match routing key %s", msg, msg.RepoUrl, repoPath)
+	}
+	if len(msg.Heads) != 1 {
+		return fmt.Errorf("Message %v has %d heads, only 1 supported", msg, len(msg.Heads))
+	}
+	if len(msg.PushlogPushes) != 1 {
+		return fmt.Errorf("Message %v has %d pushlog pushes, only 1 supported", msg, len(msg.PushlogPushes))
+	}
+
+	prefix := fmt.Sprintf("%s/json-pushes?version=2&", repoUrl)
+	pushJsonUrl := msg.PushlogPushes[0].PushJsonUrl
+	if !strings.HasPrefix(pushJsonUrl, prefix) {
+		return fmt.Errorf("push_json_url does not start with %s", prefix)
+	}
+
+	pushJsonUrl = fmt.Sprintf("%s&tipsonly=1", pushJsonUrl)
+	resp, err := http.Get(pushJsonUrl)
+	if err != nil {
+		return fmt.Errorf("Error calling push_json_url %s: %v", pushJsonUrl, err)
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("push_json_url %s did not return 200", pushJsonUrl)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("Error reading push_json_url response body: %v", err)
+	}
+	pushJson := PushJson{}
+	if err := json.Unmarshal(body, &pushJson); err != nil {
+		return fmt.Errorf("Error parsing push_json_url response body: %v %s", err, body)
+	}
+
+	msgPush := msg.PushlogPushes[0]
+	apiPush, ok := pushJson.Pushes[msgPush.PushId]
+	if !ok {
+		return fmt.Errorf("Did not find push %d in push_json_url response: %v", msgPush.PushId, pushJson)
+	}
+
+	if msgPush.User != apiPush.User || msgPush.Time != apiPush.Date || len(apiPush.Changesets) != 1 || msg.Heads[0] != apiPush.Changesets[0] {
+		return fmt.Errorf("push_json_url reponse does not match pulse message: %v %v", msg, pushJson)
+	}
+	return nil
 }
 
 type hgPushBinding struct {
@@ -99,12 +159,8 @@ func (handler *HgmoPulseHandler) handleMessage(message interface{}, delivery amq
 				log.Printf("Unwatched repository %s", repoPath)
 				break
 			}
-			if len(data.Heads) != 1 {
-				log.Printf("Message %s has %d heads, only 1 supported", t, len(data.Heads))
-				break
-			}
-			if len(data.PushlogPushes) != 1 {
-				log.Printf("Message %s has %d pushlog pushes, only 1 supported", t, len(data.PushlogPushes))
+			if err := data.VerifyMessage(repoPath); err != nil {
+				log.Printf("%s", err)
 				break
 			}
 			if err := TriggerHgJob(handler.Jenkins, repoPath, data.RepoUrl, data.Heads[0], t); err != nil {

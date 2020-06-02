@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "exchange": "exchange/hgpushes/v2",
+    "routing_key": "ci/ci-admin",
+    "sent": "2020-04-30T19:02:53.272543",
+    "serializer": "json"
+  },
+  "payload": {
+    "data": {
+      "heads": [
+        "1262b7fc3aecbe4e192f29e9e619eef8ba6e3f35"
+      ],
+      "pushlog_pushes": [
+        {
+          "push_full_json_url": "https://hg.mozilla.org/users/mozilla_hocat.ca/hg-extra/json-pushes?version=2&full=1&startID=1&endID=2",
+          "push_json_url": "https://hg.mozilla.org/users/mozilla_hocat.ca/hg-extra/json-pushes?version=2&startID=1&endID=2",
+          "pushid": 2,
+          "time": 1587713752,
+          "user": "mozilla@hocat.ca"
+        }
+      ],
+      "repo_url": "https://hg.mozilla.org/users/mozilla_hocat.ca/hg-extra",
+      "source": "serve"
+    },
+    "type": "changegroup.1"
+  }
+}

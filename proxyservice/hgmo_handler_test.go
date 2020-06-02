@@ -50,14 +50,14 @@ func TestHgmoHandler(t *testing.T) {
 		{
 			TestName:   "Nested Repository",
 			RoutingKey: "users/mozilla_hocat.ca/hg-extra",
-			Message:    loadFixture("fixtures/hgmo_changegroup.json"),
+			Message:    loadFixture("fixtures/hgmo_hg-extra_changegroup.json"),
 			Jobs:       nil,
 			Errors:     []string{"Invalid hg.mozilla.org repository path"},
 		},
 		{
 			TestName:   "Top-level Repository",
 			RoutingKey: "mozilla-central",
-			Message:    loadFixture("fixtures/hgmo_changegroup.json"),
+			Message:    loadFixture("fixtures/hgmo_central_changegroup.json"),
 			Jobs:       nil,
 			Errors:     []string{"Invalid hg.mozilla.org repository path"},
 		},
