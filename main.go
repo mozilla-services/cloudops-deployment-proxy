@@ -9,6 +9,8 @@ import (
 	"go.mozilla.org/mozlog"
 
 	"github.com/urfave/cli"
+
+	"github.com/taskcluster/pulse-go/pulse"
 )
 
 func init() {
@@ -47,6 +49,34 @@ func main() {
 			Usage:  "Password for authing against jenkins",
 			EnvVar: "JENKINS_PASSWORD",
 		},
+		cli.StringFlag{
+			Name:   "pulse-username",
+			Usage:  "Username for authing against pulse",
+			EnvVar: "PULSE_USERNAME",
+		},
+		cli.StringFlag{
+			Name:   "pulse-password",
+			Usage:  "Password for authing against pulse",
+			EnvVar: "PULSE_PASSWORD",
+		},
+		cli.StringFlag{
+			Name:   "pulse-host",
+			Usage:  "Pulse host to connect to",
+			Value:  "",
+			EnvVar: "PULSE_HOST",
+		},
+		cli.StringSliceFlag{
+			Name:   "hgmo-repo",
+			Usage:  "hg.mozilla.org repo to listend to pushes from (can be used multiple times)",
+			Value:  &cli.StringSlice{"ci/ci-admin", "ci/ci-configuration"},
+			EnvVar: "HGMO_REPO",
+		},
+		cli.StringFlag{
+			Name:   "hgmo-pulse-queue",
+			Usage:  "Pulse queue to listen to.",
+			Value:  "hgmo",
+			EnvVar: "HGMO_PULSE_QUEUE",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -74,6 +104,25 @@ func main() {
 			w.Write([]byte("OK"))
 		})
 
+		if c.String("pulse-host") != "" {
+			pulse := pulse.NewConnection(
+				c.String("pulse-username"),
+				c.String("pulse-password"),
+				c.String("pulse-host"),
+			)
+
+			hgmoPulseHandler := proxyservice.NewHgmoPulseHandler(
+				jenkins,
+				&pulse,
+				c.String("hgmo-pulse-queue"),
+				c.StringSlice("hgmo-repo")...,
+			)
+
+			if err := hgmoPulseHandler.Consume(); err != nil {
+				return cli.NewExitError(fmt.Sprintf("Could not listen to hgmo pulse: %v", err), 1)
+			}
+		}
+
 		server := &http.Server{
 			Addr:    c.String("addr"),
 			Handler: mux,
@@ -92,6 +141,20 @@ func validateCliContext(c *cli.Context) error {
 		if c.String(s) == "" {
 			cErrors = append(cErrors, fmt.Errorf("%s must be set", s))
 		}
+	}
+
+	pulseSpecified := false
+	pulseMissing := false
+	pulseOptions := []string{"pulse-username", "pulse-password", "pulse-host"}
+	for _, s := range pulseOptions {
+		if c.String(s) == "" {
+			pulseMissing = true
+		} else {
+			pulseSpecified = true
+		}
+	}
+	if pulseMissing && pulseSpecified {
+		cErrors = append(cErrors, fmt.Errorf("All or none of %s must be set", pulseOptions))
 	}
 
 	if len(cErrors) > 0 {
