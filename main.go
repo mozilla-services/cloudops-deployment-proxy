@@ -62,7 +62,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "pulse-host",
 			Usage:  "Pulse host to connect to",
-			Value:  "",
+			Value:  "amqps://pulse.mozilla.org",
 			EnvVar: "PULSE_HOST",
 		},
 		cli.StringSliceFlag{
