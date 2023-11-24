@@ -36,6 +36,7 @@ type DockerhubFixtureTest struct {
 func TestDockerHubHandler(t *testing.T) {
 	jenkins := NewFakeJenkins()
 	handler := NewDockerHubWebhookHandler(
+		false,
 		jenkins,
 		"mozilla",
 	)

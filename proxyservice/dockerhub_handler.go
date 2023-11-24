@@ -6,18 +6,20 @@ import (
 )
 
 type DockerHubWebhookHandler struct {
-	Jenkins         Jenkins
-	ValidNameSpaces map[string]bool
+	Jenkins                  Jenkins
+	ValidNameSpaces          map[string]bool
+	DisableDockerHubCallback bool
 }
 
-func NewDockerHubWebhookHandler(jenkins Jenkins, nameSpaces ...string) *DockerHubWebhookHandler {
+func NewDockerHubWebhookHandler(disableDockerHubCallback bool, jenkins Jenkins, nameSpaces ...string) *DockerHubWebhookHandler {
 	validNameSpaces := make(map[string]bool)
 	for _, nameSpace := range nameSpaces {
 		validNameSpaces[nameSpace] = true
 	}
 	return &DockerHubWebhookHandler{
-		Jenkins:         jenkins,
-		ValidNameSpaces: validNameSpaces,
+		Jenkins:                  jenkins,
+		ValidNameSpaces:          validNameSpaces,
+		DisableDockerHubCallback: disableDockerHubCallback,
 	}
 }
 
@@ -46,10 +48,12 @@ func (d *DockerHubWebhookHandler) ServeHTTP(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	if err := hookData.Callback(NewSuccessCallbackData()); err != nil {
-		log.Printf("Callback error: %v", err)
-		http.Error(w, "Request could not be validated", http.StatusUnauthorized)
-		return
+	if !d.DisableDockerHubCallback {
+		if err := hookData.Callback(NewSuccessCallbackData()); err != nil {
+			log.Printf("Callback error: %v", err)
+			http.Error(w, "Request could not be validated", http.StatusUnauthorized)
+			return
+		}
 	}
 
 	log.Printf("Triggering Jenkins Job for: %s %s with tag: %s",

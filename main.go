@@ -77,6 +77,11 @@ func main() {
 			Value:  "hgmo",
 			EnvVar: "HGMO_PULSE_QUEUE",
 		},
+		cli.BoolFlag{
+			Name:   "disable-docker-hub-callback",
+			Usage:  "Disable Docker Hub callback when it randomly breaks over Thanksgiving https://docs.docker.com/docker-hub/webhooks/#validate-a-webhook-callback",
+			EnvVar: "DISABLE_DOCKER_HUB_CALLBACK",
+		},
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -91,6 +96,7 @@ func main() {
 		)
 
 		dockerhubHandler := proxyservice.NewDockerHubWebhookHandler(
+			c.Bool("disable-docker-hub-callback"),
 			jenkins,
 			c.StringSlice("valid-namespace")...,
 		)
